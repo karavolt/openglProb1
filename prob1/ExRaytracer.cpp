@@ -178,8 +178,12 @@ GVec3 Phong(GPos3 P, GVec3 N, GSphere Obj)
 {
 	GVec3 C;
 	// 광원의 특징 * 구의 재질..을 통한 색상계산.
-	// la*ka, ld*kd, ls*ks
-	C = Obj.Ka + Obj.Kd + Obj.Ks;
+	// la*ka + ld*kd + ls*ks
+
+	// 일단 단일 광원으로 계산을 해보자
+	C = (LightList[0].Ia * Obj.Ka) +	// ambient
+		(LightList[0].Id * Obj.Kd) +	// difuse
+		(LightList[0].Is * Obj.Ks);		// specular
 	return C;
 }
 
