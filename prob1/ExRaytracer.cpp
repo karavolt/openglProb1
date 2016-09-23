@@ -34,28 +34,28 @@ int main(int argc, char **argv)
 	glutCreateWindow("RayTracer");
 	glutDisplayFunc(Render);
 	glutReshapeFunc(Reshape);
-	
+
 	// 조명 설정
 	GLight Light0;
-	Light0.Pos.Set(0.0, 0.0, 0.0);
-	Light0.Ia.Set(0.2, 0.2, 0.2);
-	Light0.Id.Set(0.7, 0.7, 0.7);
-	Light0.Is.Set(0.8, 0.8, 0.8);
+	Light0.Pos.Set(0.0, 0.0, 100.0);
+	Light0.Ia.Set(1.0, 1.0, 1.0);
+	Light0.Id.Set(1.0, 1.0, 1.0);
+	Light0.Is.Set(1.0, 1.0, 1.0);
 	LightList.push_back(Light0);
 
 	// 장면에 구를 배치한다.
 	GSphere Sphere0;
-	Sphere0.Pos.Set(-80, -50, -450.0);
-	Sphere0.Rad = 50.0;
-	Sphere0.Ka.Set(0.2, 0.2, 0.8);
-	Sphere0.Kd.Set(0.0, 0.0, 0.7);
-	Sphere0.Ks.Set(0.9, 0.9, 0.9);
-	Sphere0.ns = 8.0;
+	Sphere0.Pos.Set(0, 0, -50);
+	Sphere0.Rad = 10;
+	Sphere0.Ka.Set(0.1, 0.1, 0.1);
+	Sphere0.Kd.Set(0.7, 0.7, 0.7);
+	Sphere0.Ks.Set(0.5, 0.5, 0.5);
+	Sphere0.ns = 256.0;
 	SphereList.push_back(Sphere0);
 
-	GSphere Sphere1;
+	/*GSphere Sphere1;
 	Sphere1.Pos.Set(-80, 0, -400.0);
-	Sphere1.Rad = 50.0;
+	Sphere1.Rad = 30.0;
 	Sphere1.Ka.Set(0.8, 0.2, 0.2);
 	Sphere1.Kd.Set(0.7, 0.0, 0.0);
 	Sphere1.Ks.Set(0.9, 0.9, 0.9);
@@ -69,14 +69,14 @@ int main(int argc, char **argv)
 	Sphere2.Kd.Set(0.0, 0.7, 0.0);
 	Sphere2.Ks.Set(0.9, 0.9, 0.9);
 	Sphere2.ns = 8.0;
-	SphereList.push_back(Sphere2);
-	
+	SphereList.push_back(Sphere2);*/
+
 	// 이미지를 생성
 	CreateImage();
 
 	// 이벤트를 처리를 위한 무한 루프로 진입한다.
 	glutMainLoop();
-	
+
 	return 0;
 }
 
@@ -102,7 +102,7 @@ void Render()
 
 	// 칼라 버퍼에 Image 데이터를 직접 그린다.
 	glDrawPixels(W, H, GL_RGB, GL_UNSIGNED_BYTE, Image);
-	
+
 	// 칼라 버퍼 교환한다
 	glutSwapBuffers();
 }
@@ -125,9 +125,9 @@ void CreateImage()
 			int idx = (H - 1 - i) * W * 3 + j * 3;
 
 			// Threshold color
- 			unsigned char r = (Color[0] > 1.0) ? 255 : Color[0] * 255;
- 			unsigned char g = (Color[1] > 1.0) ? 255 : Color[1] * 255;
- 			unsigned char b = (Color[2] > 1.0) ? 255 : Color[2] * 255;
+			unsigned char r = (Color[0] > 1.0) ? 255 : Color[0] * 255;
+			unsigned char g = (Color[1] > 1.0) ? 255 : Color[1] * 255;
+			unsigned char b = (Color[2] > 1.0) ? 255 : Color[2] * 255;
 
 			Image[idx] = r;
 			Image[idx + 1] = g;
@@ -146,46 +146,54 @@ GVec3 RayTrace(GLine ray, int depth)
 	double k_refract = 0.3; // 굴절광 계수
 
 	int sidx;	// 광선과 교차하는 가장 까가운 구의 인덱스
-	// t* 값이 가장 적은애로. 
+				// t* 값이 가장 적은애로. 
 	double t;	// 교차점에서 광선의 파라미터 t
 				// GLINE.Evall(t)쓰면 된당.
-				
+
 
 	if (intersect_line_sphere(ray, sidx, t))
 	{
 		// 구현...
 		GPos3 P = ray.Eval(t);
-		GVec3 N = N.Normalize(), // normalize vector. ray? sphere?
-			V, // 법선?
-			R; // 반사광선의 방향벡터?
-		GLine ray_reflect, ray_refract; // 여기있는데.. 
-		/*
-		p = point_of_intersection(v, S);
-		R = reflection(v, S, p);
-		T = refraction(v, S, p);
-		*/
+		GVec3 N = cast_GVec3(P).Normalize(), // normalize vector. ray? sphere?
+			V (LightList[0].Pos - P), // 입사광
+			R = V - ((2 * (N * V)) * N); // 반사광
+		GLine ray_reflect(cast_pt3(R),P),
+			ray_refract;
 
-// 		C = Phong(P, N, SphereList[sidx]) 
-// 			+ k_reflect * RayTrace(ray_reflect, depth)	// 반사광선
-// 			+ k_refract * RayTrace(ray_refract, depth);	// 굴절광선
+		C = Phong(P, N, SphereList[sidx]) +
+			k_reflect * RayTrace(ray_reflect, depth);	// 반사광선
+			//k_refract * RayTrace(ray_refract, depth);	// 굴절광선
 	}
 
 	return C;
+}
+
+GVec3 multiply(GVec3 lhs, GVec3 rhs) {
+	GVec3 temp;
+	temp[0] = lhs[0] * rhs[0];
+	temp[1] = lhs[1] * rhs[1];
+	temp[2] = lhs[2] * rhs[2];
+	return temp;
 }
 
 // 퐁셰이딩
 GVec3 Phong(GPos3 P, GVec3 N, GSphere Obj)
 {
 	GVec3 C;
+	GLine L(P,LightList[0].Pos); // 곡면위의 한점 -> 광원 
+	GVec3 V(LightList[0].Pos - P); // 입사광
+	GVec3 R = V.Normalize() - ((2 * (N * V.Normalize())) * N);
 	// 광원의 특징 * 구의 재질..을 통한 색상계산.
-	// la*ka + ld*kd + ls*ks
+	// la*ka + ((ld*kd) *(N * L) + ((ls*ks) * (V * R)^ns
 
 	// 일단 단일 광원으로 계산을 해보자
-	C = (LightList[0].Ia * Obj.Ka) +	// ambient
-		(LightList[0].Id * Obj.Kd) +	// difuse
-		(LightList[0].Is * Obj.Ks);		// specular
+	C = multiply(LightList[0].Ia, Obj.Ka) +	// ambient
+		(multiply(LightList[0].Id, Obj.Kd) * (N * L.v)) +	// difuse
+		(multiply(LightList[0].Is , Obj.Ks) * (pow((V.Normalize() * R.Normalize()),Obj.ns)));		// specular
 	return C;
 }
+
 
 bool intersect_line_sphere(GLine ray, int &sidx, double &t)
 {
@@ -195,11 +203,30 @@ bool intersect_line_sphere(GLine ray, int &sidx, double &t)
 	// t : 교차점
 
 	// spherelist내의 구와 광선의 교차점을 찾는당
-	
-	// 만나는 구가 있으면
-	return true;
+	int size = SphereList.size();
+	double tstar;
 
-	// 광선이 교차하는 곡면이 없거나, 사용자가 정의한 최대깊이를 초과했을떄.
+	for (int i = 0; i < size; i++) {
+		GVec3 v1, u1;
+		double uv;
+		v1 = ray.v;
+		u1 = ray.p - SphereList[i].Pos;
+		uv = u1 * v1;
+
+		
+		tstar = -(uv)+sqrt(pow(uv,2.0) - (pow(norm(u1),2.0) - pow(SphereList[i].Rad,2.0)));
+		
+		if (tstar > 0)
+		{
+			// 만나는 구가 있으면
+			t = tstar;
+			sidx = i;
+			return true;
+		}
+		else
+			// 광선이 교차하는 곡면이 없거나, 사용자가 정의한 최대깊이를 초과했을떄.
+			return false;			
+	}
+
 	return false;
-	
 }
