@@ -36,13 +36,21 @@ int main(int argc, char **argv)
 	glutDisplayFunc(Render);
 	glutReshapeFunc(Reshape);
 
-	// 조명 설정
+	// 조명 설정	
 	GLight Light0;
 	Light0.Pos.Set(-40.0, 40.0, 350.0);
 	Light0.Ia.Set(0.2, 0.2, 0.2);
 	Light0.Id.Set(0.7, 0.7, 0.7);
 	Light0.Is.Set(0.8, 0.8, 0.8);
 	LightList.push_back(Light0);
+
+
+	GLight Light1;
+	Light1.Pos.Set(200.0, -500.0, 350.0);
+	Light1.Ia.Set(0.2, 0.2, 0.5);
+	Light1.Id.Set(0.7, 0.7, 0.7);
+	Light1.Is.Set(0.8, 0.2, 0.2);
+	LightList.push_back(Light1);
 
 	// 장면에 구를 배치한다.
 	GSphere Sphere0;
@@ -165,8 +173,8 @@ GVec3 RayTrace(GLine ray, int depth)
 										   //std::cout << "퐁2" << std::endl;
 		GLine ray_reflect(P, R);
 
-		C = Phong(P, N, SphereList[sidx]) +
-			k_reflect * RayTrace(ray_reflect, depth);
+		C = Phong(P, N, SphereList[sidx]);
+		//k_reflect * RayTrace(ray_reflect, depth);
 		//k_refract * RayTrace(ray_refract, depth);	// 굴절광선
 		//std::cout << "퐁3" << std::endl;
 	}
@@ -189,21 +197,35 @@ GVec3 Phong(GPos3 P, GVec3 N, GSphere Obj)
 {
 	GVec3 C;
 	GLine L(P, LightList[0].Pos); // 곡면위의 한점 -> 광원 
+	GLine L2(P, LightList[1].Pos); // 곡면위의 한점 -> 광원 
 	GVec3 V(LightList[0].Pos - P); // 입사광
+	GVec3 V2(LightList[1].Pos - P); // 입사광
 	GVec3 R = V.Normalize() - ((2 * (N * V.Normalize())) * N);
+	GVec3 R2 = V2.Normalize() - ((2 * (N * V2.Normalize())) * N);
 	// 광원의 특징 * 구의 재질..을 통한 색상계산.
 	// la*ka + ((ld*kd) *(N * L) + ((ls*ks) * (V * R)^ns 
 
 	//C = (multiply(LightList[0].Is, Obj.Ks) * (pow((V.Normalize() * R.Normalize()), Obj.ns)));
 
+	// 광원1
 	GVec3 amb = multiply(LightList[0].Ia, Obj.Ka);
 	GVec3 diff = (multiply(LightList[0].Id, Obj.Kd) * (N * L.v.Normalize()));
 	GVec3 spec = (multiply(LightList[0].Is, Obj.Ks) * (pow((V.Normalize() * R.Normalize()), Obj.ns)));
 
+	GVec3 C1 = multiply(LightList[0].Ia, (diff + spec));
+
+	// 광원2
+	GVec3 amb2 = multiply(LightList[1].Ia, Obj.Ka);
+	GVec3 diff2 = (multiply(LightList[1].Id, Obj.Kd) * (N * L2.v.Normalize()));
+	GVec3 spec2 = (multiply(LightList[1].Is, Obj.Ks) * (pow((V2.Normalize() * R.Normalize()), Obj.ns)));
+	//
+	GVec3 C2 = multiply(LightList[1].Ia, (diff2 + spec2));
 
 	// 일단 단일 광원으로 계산을 해보자
-	C = C + amb + diff + spec;
-	//C = C + diff;
+	//C = C + amb + diff  + spec;
+	//C = C + amb + diff + diff2 + spec + spec2;
+	//C = C + amb + diff + spec;// +C2;
+	C = C + amb + C1 + C2;
 
 	return C;
 }
