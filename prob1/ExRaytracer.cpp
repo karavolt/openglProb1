@@ -11,6 +11,7 @@
 unsigned char Image[H * W * 3];
 std::vector<GSphere> SphereList;
 std::vector<GLight> LightList;
+static int funccnt = 0;
 
 // 콜백 함수 선언
 void Render();
@@ -37,7 +38,7 @@ int main(int argc, char **argv)
 
 	// 조명 설정
 	GLight Light0;
-	Light0.Pos.Set(250.0, -300.0, 300.0);
+	Light0.Pos.Set(-40.0, 40.0, 350.0);
 	Light0.Ia.Set(0.2, 0.2, 0.2);
 	Light0.Id.Set(0.7, 0.7, 0.7);
 	Light0.Is.Set(0.8, 0.8, 0.8);
@@ -45,7 +46,7 @@ int main(int argc, char **argv)
 
 	// 장면에 구를 배치한다.
 	GSphere Sphere0;
-	Sphere0.Pos.Set(-80, -50, -450.0);
+	Sphere0.Pos.Set(-80, 0, -450.0);
 	Sphere0.Rad = 50.0;
 	Sphere0.Ka.Set(0.2, 0.2, 0.8);
 	Sphere0.Kd.Set(0.0, 0.0, 0.7);
@@ -53,24 +54,24 @@ int main(int argc, char **argv)
 	Sphere0.ns = 8.0;
 	SphereList.push_back(Sphere0);
 
-	/*GSphere Sphere1;
-	Sphere1.Pos.Set(0, -80, -500.0);
-	Sphere1.Rad = 25.0;
+	GSphere Sphere1;
+	Sphere1.Pos.Set(80, 0, -450.0);
+	Sphere1.Rad = 50.0;
 	Sphere1.Ka.Set(0.8, 0.2, 0.2);
 	Sphere1.Kd.Set(0.7, 0.0, 0.0);
 	Sphere1.Ks.Set(0.9, 0.9, 0.9);
-	Sphere1.ns = 256;
-	SphereList.push_back(Sphere1);*/
+	Sphere1.ns = 8.0;
+	SphereList.push_back(Sphere1);
 
-	/*
-	GSphere Sphere2;
-	Sphere2.Pos.Set(0, -50, -500.0);
-	Sphere2.Rad = 50.0;
-	Sphere2.Ka.Set(0.2, 0.8, 0.2);
-	Sphere2.Kd.Set(0.0, 0.7, 0.0);
-	Sphere2.Ks.Set(0.9, 0.9, 0.9);
-	Sphere2.ns = 8.0;
-	SphereList.push_back(Sphere2);*/
+
+	//GSphere Sphere2;
+	//Sphere2.Pos.Set(0, 80, -500.0);
+	//Sphere2.Rad = 50.0;
+	//Sphere2.Ka.Set(0.2, 0.8, 0.2);
+	//Sphere2.Kd.Set(0.0, 0.7, 0.0);
+	//Sphere2.Ks.Set(0.9, 0.9, 0.9);
+	//Sphere2.ns = 8.0;
+	//SphereList.push_back(Sphere2);
 
 	// 이미지를 생성
 	CreateImage();
@@ -133,6 +134,7 @@ void CreateImage()
 			Image[idx] = r;
 			Image[idx + 1] = g;
 			Image[idx + 2] = b;
+			//std::cout << i << " " << j << std::endl;
 		}
 	}
 }
@@ -152,21 +154,25 @@ GVec3 RayTrace(GLine ray, int depth)
 				// GLINE.Evall(t)쓰면 된당.
 
 
-	if (intersect_line_sphere(ray, sidx, t)) 
+	if (intersect_line_sphere(ray, sidx, t))
 	{
+		//std::cout << "퐁1" << std::endl;
 		// 구현...
 		GPos3 P = ray.Eval(t);
-		GVec3 N = cast_GVec3(P).Normalize(), // normalize vector. ray? sphere?
-			V (LightList[0].Pos - P), // 입사광
-			R = V - ((2 * (N * V)) * N); // 반사광
-		GLine ray_reflect(cast_pt3(R),P),
-			ray_refract;
+		GVec3 N = (P - SphereList[sidx].Pos).Normalize(), // normalize vector. ray? sphere?
+			V = ray.v, // 입사광
+			R = V - ((2.0 * (N * V)) * N); // 반사광
+										   //std::cout << "퐁2" << std::endl;
+		GLine ray_reflect(P, R);
 
-		C = Phong(P, N, SphereList[sidx]);
-			//k_reflect * RayTrace(ray_reflect, depth);	// 반사광선
-			//k_refract * RayTrace(ray_refract, depth);	// 굴절광선
+		C = Phong(P, N, SphereList[sidx]) +
+			k_reflect * RayTrace(ray_reflect, depth);
+		//k_refract * RayTrace(ray_refract, depth);	// 굴절광선
+		//std::cout << "퐁3" << std::endl;
 	}
 
+	//std::cout << "funccount : " << funccnt << std::endl;
+	funccnt++;
 	return C;
 }
 
@@ -182,73 +188,58 @@ GVec3 multiply(GVec3 lhs, GVec3 rhs) {
 GVec3 Phong(GPos3 P, GVec3 N, GSphere Obj)
 {
 	GVec3 C;
-	GLine L(P,LightList[0].Pos); // 곡면위의 한점 -> 광원 
+	GLine L(P, LightList[0].Pos); // 곡면위의 한점 -> 광원 
 	GVec3 V(LightList[0].Pos - P); // 입사광
 	GVec3 R = V.Normalize() - ((2 * (N * V.Normalize())) * N);
 	// 광원의 특징 * 구의 재질..을 통한 색상계산.
-	// la*ka + ((ld*kd) *(N * L) + ((ls*ks) * (V * R)^ns
+	// la*ka + ((ld*kd) *(N * L) + ((ls*ks) * (V * R)^ns 
 
 	//C = (multiply(LightList[0].Is, Obj.Ks) * (pow((V.Normalize() * R.Normalize()), Obj.ns)));
 
+	GVec3 amb = multiply(LightList[0].Ia, Obj.Ka);
+	GVec3 diff = (multiply(LightList[0].Id, Obj.Kd) * (N * L.v.Normalize()));
+	GVec3 spec = (multiply(LightList[0].Is, Obj.Ks) * (pow((V.Normalize() * R.Normalize()), Obj.ns)));
+
+
 	// 일단 단일 광원으로 계산을 해보자
-	C = multiply(LightList[0].Ia, Obj.Ka)+	// ambient
-		(multiply(LightList[0].Id, Obj.Kd) * (N * L.v.Normalize()))+	// difuse
-		(multiply(LightList[0].Is , Obj.Ks) * (pow((V.Normalize() * R.Normalize()),Obj.ns)));		// specular
+	C = C + amb + diff + spec;
+	//C = C + diff;
+
 	return C;
 }
 
 
 bool intersect_line_sphere(GLine ray, int &sidx, double &t)
 {
-	// 구의 중심에서 광원방향.
 
-	// sidx :: ray에서 가장 가까운 구의 idx
-	// t : 교차점
 
-	// spherelist내의 구와 광선의 교차점을 찾는당
-	int size = SphereList.size();
-	double *tstar;
-	tstar = new double[size];
-
-	for (int i = 0; i < size; i++) {
+	for (int i = 0; i < (int)SphereList.size(); i++) {
 		GVec3 v1, u1;
 		double uv;
 		v1 = ray.v;
 		u1 = ray.p - SphereList[i].Pos;
 		uv = u1 * v1;
-		
-		tstar[i] = -(uv)+sqrt(pow(uv,2.0) - (pow(norm(u1),2.0) - pow(SphereList[i].Rad,2.0)));
 
-		if (isnan(tstar[i]) == true)
-			return false;
+		t = 10000000000.0;
 
-		if (tstar[i] > 0)
+		double D = -(uv)+sqrt(pow(uv, 2.0) - (pow(norm(u1), 2.0) - pow(SphereList[i].Rad, 2.0)));
+
+
+		if (D > 0.0)
 		{
-			// 만나는 구가 있으면
-			t = tstar[i];
-			sidx = i;
-			return true;
+			double tmp = -(u1 * v1) - SQRT(D);
+
+			if (tmp > 0.0)
+			{
+				if (tmp < t)
+				{
+					sidx = i;
+					t = tmp;
+					return true;
+				}
+			}
 		}
 	}
-
-	//double temp = tstar[0];
-	//int cnt = 0;
-
-	//for (int i = 0; i < size; i++) {
-	//	if (temp > tstar[i])
-	//	{
-	//		temp = tstar[i];
-	//		cnt = i;
-	//	}
-	//}
-
-	//if (tstar > 0)
-	//{
-	//	// 만나는 구가 있으면
-	//	t = tstar[cnt];
-	//	sidx = cnt;
-	//	return true;
-	//}
 
 	return false;
 }
