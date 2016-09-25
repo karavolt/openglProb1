@@ -11,6 +11,7 @@
 unsigned char Image[H * W * 3];
 std::vector<GSphere> SphereList;
 std::vector<GLight> LightList;
+const int MAX_SPHERE = 3;
 
 // 콜백 함수 선언
 void Render();
@@ -58,7 +59,7 @@ int main(int argc, char **argv)
 	srand(t);
 
 	// 구를 랜덤으로 여러개 생성
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < MAX_SPHERE; i++)
 	{
 		GSphere Sphere;
 		Sphere.Pos.Set(0.0 + (rand() % 200) - 100, 0.0 + (rand() % 200) - 100, -400.0 - rand() % 100);
@@ -98,7 +99,7 @@ void KeyBoard(int key, int x, int y)
 		srand(t);
 
 		// 다시넣고
-		for (int i = 0; i < 3; i++)
+		for (int i = 0; i < MAX_SPHERE; i++)
 		{
 			GSphere Sphere;
 			Sphere.Pos.Set(0.0 + (rand() % 200) - 100, 0.0 + (rand() % 200) - 100, -400.0 - rand() % 100);
