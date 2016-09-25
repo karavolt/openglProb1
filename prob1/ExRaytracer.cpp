@@ -11,15 +11,12 @@
 unsigned char Image[H * W * 3];
 std::vector<GSphere> SphereList;
 std::vector<GLight> LightList;
-static int funccnt = 0;
 
 // 콜백 함수 선언
 void Render();
 void Reshape(int w, int h);
-void KeyBoard(unsigned char key, int x, int y);
+void KeyBoard(int key, int x, int y);
 
-// 광선 추적 함수
-int GetIdx(int i, int j);
 void CreateImage();
 GVec3 RayTrace(GLine ray, int depth);
 GVec3 Phong(GPos3 P, GVec3 N, GSphere Obj);
@@ -36,9 +33,10 @@ int main(int argc, char **argv)
 	glutCreateWindow("RayTracer");
 	glutDisplayFunc(Render);
 	glutReshapeFunc(Reshape);
-	glutKeyboardFunc(KeyBoard);
+	glutSpecialFunc(KeyBoard);
 
-	// 조명 설정	
+
+	// 조명 설정 광원 2개
 	GLight Light0;
 	Light0.Pos.Set(0, 0, 1000.0);
 	Light0.Ia.Set(0.2, 0.2, 0.2);
@@ -54,10 +52,13 @@ int main(int argc, char **argv)
 	Light1.Is.Set(0.8, 0.2, 0.2);
 	LightList.push_back(Light1);
 
+	// rand함수를 위해서 
 	time_t t;
 	time(&t);
 	srand(t);
-	for (int i = 0; i < 5; i++)
+
+	// 구를 랜덤으로 여러개 생성
+	for (int i = 0; i < 3; i++)
 	{
 		GSphere Sphere;
 		Sphere.Pos.Set(0.0 + (rand() % 200) - 100, 0.0 + (rand() % 200) - 100, -400.0 - rand() % 100);
@@ -66,6 +67,7 @@ int main(int argc, char **argv)
 		Sphere.Kd.Set(0.0 + (rand() % 10) / 10.0, 0.0 + (rand() % 10) / 10.0, 0.0 + +(rand() % 10) / 10.0);
 		Sphere.Ks.Set(0.0 + (rand() % 10) / 10.0, 0.0 + (rand() % 10) / 10.0, 0.0 + +(rand() % 10) / 10.0);
 		Sphere.ns = 8.0;
+		// 거울처럼 완벽하게 반사하게 한다
 		Sphere.isMirror = rand() % 1;
 		SphereList.push_back(Sphere);
 	}
@@ -84,15 +86,19 @@ void Reshape(int w, int h)
 	glViewport(0, 0, w, h);
 }
 
-void KeyBoard(unsigned char key, int x, int y)
+void KeyBoard(int key, int x, int y)
 {
-	if (key == GLUT_KEY_UP)
+	// 아래쪽 화살표를 누르면
+	if (key == GLUT_KEY_DOWN)
 	{
+		// 벡터 초기화 하고
 		SphereList.clear();
 		time_t t;
 		time(&t);
 		srand(t);
-		for (int i = 0; i < 5; i++)
+
+		// 다시넣고
+		for (int i = 0; i < 3; i++)
 		{
 			GSphere Sphere;
 			Sphere.Pos.Set(0.0 + (rand() % 200) - 100, 0.0 + (rand() % 200) - 100, -400.0 - rand() % 100);
@@ -105,8 +111,11 @@ void KeyBoard(unsigned char key, int x, int y)
 			SphereList.push_back(Sphere);
 		}
 
+		// 다시 그린다
 		CreateImage();
+		glutPostRedisplay();
 	}
+
 }
 
 
@@ -120,10 +129,6 @@ void Render()
 	// 칼라 버퍼와 깊이 버퍼 지우기
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// frame에따른 이미지 변화 update
-	// imageUpdate();
-
 
 	// 칼라 버퍼에 Image 데이터를 직접 그린다.
 	glDrawPixels(W, H, GL_RGB, GL_UNSIGNED_BYTE, Image);
@@ -143,6 +148,7 @@ void CreateImage()
 		{
 			double x = x0 + j;
 			double y = y0 - i;
+
 			// 광선만들기 (시점) -> 현재목표위치)
 			GLine ray(GPos3(0.0, 0.0, 0.0), GPos3(x, y, z));
 			GVec3 Color = RayTrace(ray, 0);
@@ -157,7 +163,6 @@ void CreateImage()
 			Image[idx] = r;
 			Image[idx + 1] = g;
 			Image[idx + 2] = b;
-			//std::cout << i << " " << j << std::endl;
 		}
 	}
 }
@@ -170,24 +175,21 @@ GVec3 RayTrace(GLine ray, int depth)
 
 	double k_reflect; // 반사광 계수
 	double k_refract = 0.3; // 굴절광 계수
+	int sidx;
+	double t;
 
-	int sidx;	// 광선과 교차하는 가장 까가운 구의 인덱스
-				// t* 값이 가장 적은애로. 
-	double t;	// 교차점에서 광선의 파라미터 t
-				// GLINE.Evall(t)쓰면 된당.
-
-
+	// 구와 광선이 만나?
 	if (intersect_line_sphere(ray, sidx, t))
 	{
-		//std::cout << "퐁1" << std::endl;
-
 		GPos3 P = ray.Eval(t);
-		GVec3 N = (P - SphereList[sidx].Pos).Normalize(), // normalize vector. ray? sphere?
-			V = ray.v, // 입사광
-			R = V - ((2.0 * (N * V)) * N); // 반사광
+		GVec3 N = (P - SphereList[sidx].Pos).Normalize(),	  // normalize vector. ray? sphere?
+			V = ray.v,									  // 입사광
+			R = V - ((2.0 * (N * V)) * N);				  // 반사광
 
+														  // 반사광선~
 		GLine ray_reflect(P, R);
 
+		// 반사계수 설정(구의 isMirror 설정에따라)
 		if (SphereList[sidx].isMirror)
 			k_reflect = 1.0;
 		else
@@ -195,12 +197,10 @@ GVec3 RayTrace(GLine ray, int depth)
 
 		C = Phong(P, N, SphereList[sidx]) + k_reflect * RayTrace(ray_reflect, depth);
 	}
-
-	//std::cout << "funccount : " << funccnt << std::endl;
-	funccnt++;
 	return C;
 }
 
+// 벡터3 타입의 멤버끼리 단일 곱
 GVec3 multiply(GVec3 lhs, GVec3 rhs) {
 	GVec3 temp;
 	temp[0] = lhs[0] * rhs[0];
@@ -218,24 +218,25 @@ GVec3 Phong(GPos3 P, GVec3 N, GSphere Obj)
 	{
 		GVec3 L = (LightList[i].Pos - P).Normalize(); // 곡면위의 한점 -> 광원 
 		GVec3 V = (P - LightList[i].Pos).Normalize(); // 입사광
-		GVec3 R = V - 2.0 * (N * V) * N;
+		GVec3 R = V - 2.0 * (N * V) * N;			  // 반사광
 
+													  // nl
 		double nl = N * L;
 		if (nl < 0.0)
 			nl = 0.0;
 
+		// vr
 		double vr = V * R;
 		if (vr >= 0.0)
 			vr = 0.0;
 		else
 			vr = pow(vr, Obj.ns);
 
-		// 광원1
+		// 광원과 구의 재질에따라 색 계산
 		GVec3 amb = multiply(LightList[i].Ia, Obj.Ka);
 		GVec3 diff = multiply(LightList[i].Id, Obj.Kd);
 		GVec3 spec = multiply(LightList[i].Is, Obj.Ks);
-
-		//C = C + amb + diff + spec;
+		;
 		C = C + amb + diff * nl + spec * vr;
 
 	}
@@ -245,8 +246,6 @@ GVec3 Phong(GPos3 P, GVec3 N, GSphere Obj)
 
 bool intersect_line_sphere(GLine ray, int &sidx, double &t)
 {
-
-
 	for (int i = 0; i < (int)SphereList.size(); i++) {
 		GVec3 v1, u1;
 		double uv;
@@ -254,17 +253,21 @@ bool intersect_line_sphere(GLine ray, int &sidx, double &t)
 		u1 = ray.p - SphereList[i].Pos;
 		uv = u1 * v1;
 
+		// 큰값을 줘서 비교하는데 사용함
 		t = 10000000000.0;
 
+		// 광선이 구랑 부딪히니?
 		double D = SQR(u1 * v1) - (u1*u1 - SphereList[i].Rad * SphereList[i].Rad);
 
-
-		if (D > 0.0)
+		if (D > 0.0)	// 응
 		{
+			// t값 계산하기
 			double tmp = -(u1 * v1) - SQRT(D);
 
+			// t가 0보다 크면 만남.
 			if (tmp > 0.0)
 			{
+				// 그중에서 젤 작은거..
 				if (tmp < t)
 				{
 					sidx = i;
