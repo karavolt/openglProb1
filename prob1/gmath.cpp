@@ -12,7 +12,7 @@ double GVec3::Precision = 1.0e-7;
 
 /*!
 *	\brief 디폴트 생성자
-*	
+*
 *	\param x x-좌표
 *	\param y y-좌표
 *	\param z z-좌표
@@ -161,7 +161,7 @@ GVec3 GVec3::operator -() const
 *	\param rhs 오른쪽 피연산자
 *
 *	\return 연산의 결과를 반환
-*/ 
+*/
 GVec3 operator +(const GVec3 &lhs, const GVec3 &rhs)
 {
 	return GVec3(lhs.V[0] + rhs.V[0], lhs.V[1] + rhs.V[1], lhs.V[2] + rhs.V[2]);
@@ -174,7 +174,7 @@ GVec3 operator +(const GVec3 &lhs, const GVec3 &rhs)
 *	\param rhs 오른쪽 피연산자
 *
 *	\return 연산의 결과를 반환
-*/ 
+*/
 GVec3 operator -(const GVec3 &lhs, const GVec3 &rhs)
 {
 	return GVec3(lhs.V[0] - rhs.V[0], lhs.V[1] - rhs.V[1], lhs.V[2] - rhs.V[2]);
@@ -372,7 +372,7 @@ std::ostream &operator <<(std::ostream &os, const GVec3 &v)
 *
 *	\return 입력값이 제거된 입력스트림
 */
-std::istream &operator >>(std::istream &is, GVec3 &v)
+std::istream &operator >> (std::istream &is, GVec3 &v)
 {
 	is >> v.V[0] >> v.V[1] >> v.V[2];
 	return is;
@@ -405,7 +405,7 @@ GVec3 ortho(const GVec3 &v)
 	double min_val = MIN(MIN(v[0], v[1]), v[2]);
 	if (min_val == v[0])
 		ret.Set(0.0, -v[2], v[1]);
-	
+
 	if (min_val == v[1])
 		ret.Set(v[2], 0.0, -v[0]);
 
@@ -448,7 +448,7 @@ double det(const GVec3 &u, const GVec3 &v, const GVec3 &w)
 *	\param v 벡터
 *
 *	\return 벡터 \a v의 크기
-*/ 
+*/
 double norm(const GVec3 &v)
 {
 	return SQRT(SQR(v.V[0]) + SQR(v.V[1]) + SQR(v.V[2]));
@@ -505,9 +505,9 @@ double angle(const GVec3 &v, const GVec3 &w, const GVec3 &up, bool radian)
 	sn = norm(r);
 
 	theta = atan2(sn, cs);
-	if (r * up < 0.0)	
+	if (r * up < 0.0)
 		theta = 2 * M_PI - theta;
-	
+
 	theta = radian ? theta : RAD2DEG(theta);
 	return theta;
 }
@@ -517,7 +517,7 @@ double angle(const GVec3 &v, const GVec3 &w, const GVec3 &up, bool radian)
 
 /*!
 *	\brief 디폴트 생성자
-*	
+*
 *	\param x x-좌표
 *	\param y y-좌표
 *	\param z z-좌표
@@ -746,7 +746,7 @@ std::ostream &operator <<(std::ostream &os, const GPos3 &p)
 *
 *	\return 입력값이 제거된 입력스트림
 */
-std::istream &operator >>(std::istream &is, GPos3 &p)
+std::istream &operator >> (std::istream &is, GPos3 &p)
 {
 	is >> p.V[0] >> p.V[1] >> p.V[2];
 	return is;
@@ -875,7 +875,7 @@ GPos3 affine_sum(GPos3 *Points, double *Weights, const int Size)
 {
 	GPos3 ret;
 	for (int i = 0; i < Size; i++)
-	{	
+	{
 		ret.V[0] += Points[i][0] * Weights[i];
 		ret.V[1] += Points[i][1] * Weights[i];
 		ret.V[2] += Points[i][2] * Weights[i];
@@ -886,7 +886,7 @@ GPos3 affine_sum(GPos3 *Points, double *Weights, const int Size)
 ///////////////////////////////////////////////////////////
 /*!
 *	\brief 직선위의 한 점과 방향으로 직선을 생성하는 생성자.
-*	
+*
 *	\param _p 직선위의 한 점
 *	\param _v 직선의 방향 벡터.
 */
@@ -899,7 +899,7 @@ GLine::GLine(const GPos3 &_p, const GVec3 &_v)
 
 /*!
 *	\brief 3차원 공간상의 두 점을 지나는 직선을 생성하는 생성자.
-*	
+*
 *	\param _p 직선위의 점
 *	\param _q 직선위의 점
 */
@@ -912,11 +912,11 @@ GLine::GLine(const GPos3 &_p, const GPos3 &_q)
 
 /*!
 *	\brief 복사생성자.
-*	
+*
 *	\param copy 복사될 직선의 객체.
 */
 GLine::GLine(const GLine &copy)
-: p(copy.p), v(copy.v)
+	: p(copy.p), v(copy.v)
 {
 }
 
@@ -929,7 +929,7 @@ GLine::~GLine()
 
 /*!
 *	\brief	대입연산자 중복
-*	
+*
 *	\param rhs 오른쪽 피연산자.
 *
 *	\return 대입된 자신을 반환한다.
@@ -944,7 +944,7 @@ GLine &GLine::operator =(const GLine &rhs)
 /*!
 *	\brief	함수호출연산자 중복
 *			- 직선위의 매개변수 t에서의 점 l(t)를 구한다.
-*	
+*
 *	\param t 매개변수.
 *
 *	\return 직선위의 점 l(t)를 반환한다.
@@ -956,7 +956,7 @@ GPos3 GLine::Eval(const double t) const
 
 /*!
 *	\brief	등호입연산자 중복.
-*	
+*
 *	\param rhs 오른쪽 피연산자.
 *
 *	\return true: 같으면, false: 다르면.
@@ -971,7 +971,7 @@ bool operator ==(const GLine &lhs, const GLine &rhs)
 
 /*!
 *	\brief	부등호입연산자 중복.
-*	
+*
 *	\param rhs 오른쪽 피연산자.
 *
 *	\return true: 다르면, false: 같으면.
@@ -983,7 +983,7 @@ bool operator !=(const GLine &lhs, const GLine &rhs)
 
 /*!
 *	\brief 점 q가 직선위의 점인지 조사한다.
-*	
+*
 *	\param q 조사할 점.
 *
 *	\return true: q가 직선위의 점 일경우, false: 아닐경우.
@@ -1008,7 +1008,7 @@ bool GLine::IsOnLine(const GPos3 &q) const
 */
 std::ostream &operator <<(std::ostream &os, const GLine &l)
 {
-	os << "(" 
+	os << "("
 		<< l.p[0] << " + (" << l.v[0] << ") * t, "
 		<< l.p[1] << " + (" << l.v[1] << ") * t, "
 		<< l.p[2] << " + (" << l.v[2] << ") * t)";
@@ -1142,7 +1142,7 @@ double GLine::GetPrecision()
 
 /*!
 *	\brief 평면의 생성자.
-*	
+*
 *	\param _n 생성되는 평면의 법선벡터
 *	\param _p 생성되는 평면위의 임의의 한점
 */
@@ -1154,7 +1154,7 @@ GPlane::GPlane(const GVec3 &_n, const GPos3 &_p)
 
 /*!
 *	\brief 세 점 p1, p2, p3 를 지나는 평면의 생성자
-*	
+*
 *	\param p1 평면상의 점.
 *	\param p2 평면상의 점.
 *	\param p3 평면상의 점.
@@ -1167,28 +1167,28 @@ GPlane::GPlane(const GPos3 &p1, const GPos3 &p2, const GPos3 &p3)
 
 /*!
 *	\brief 평면의 복사생성자
-*	
+*
 *	\param copy 복사될 평면의 객체에 대한 레퍼런스
 */
 GPlane::GPlane(const GPlane &cpy)
-: n(cpy.n), d(cpy.d)
+	: n(cpy.n), d(cpy.d)
 {
 }
 
 /*!
 *	\brief 평면의 생성자.
-*	
+*
 *	\param _n 법선벡터.
 *	\param _d 상수 d = - n * p (p: 평면위의 임의의 점).
 */
 GPlane::GPlane(const GVec3 &_n, const double &_d)
-: n(_n), d(_d)
+	: n(_n), d(_d)
 {
 }
 
 /*!
 *	\brief 평면의 생성자.
-*	
+*
 *	\param a, b, c, d 평면 방정식 ax + by + cz +d = 0 의 계수
 */
 GPlane::GPlane(const double &a, const double &b, const double &c, const double &d)
@@ -1206,7 +1206,7 @@ GPlane::~GPlane()
 
 /*!
 *	\brief 대입연산자 중복
-*	
+*
 *	\param rhs 오른쪽 피연산자
 *
 *	\return 대입된 자신을 반환한다.
@@ -1230,7 +1230,7 @@ GVec3 GPlane::GetNormal() const
 
 /*!
 *	\brief 점 p가 평면상의 점 인지를 조사.
-*	
+*
 *	\param p 조사할 점
 *
 *	\return true: 점 p가 평면상의 점 일경우, false: 그렇지 않을경우.
@@ -1247,7 +1247,7 @@ bool GPlane::IsOnPlane(const GPos3 &p) const
 
 /*!
 *	\brief 점 p가 평면의 위쪽 점인지를 조사.
-*	
+*
 *	\param p 조사할 점
 *
 *	\return true: 점 p가 평면의 위쪽 점 일경우, false: 그렇지 않을경우.
@@ -1264,7 +1264,7 @@ bool GPlane::IsAbovePlane(const GPos3 &p) const
 
 /*!
 *	\brief 점 p가 평면의 아래쪽 점인지를 조사.
-*	
+*
 *	\param p 조사할 점
 *
 *	\return true: 점 p가 평면의 아래쪽 점 일경우, false: 그렇지 않을경우.
@@ -1307,9 +1307,9 @@ double GPlane::GetPrecision()
 */
 std::ostream &operator <<(std::ostream &os, const GPlane &pi)
 {
-	os << "(" << pi.n[0] << ") * x + (" 
+	os << "(" << pi.n[0] << ") * x + ("
 		<< pi.n[1] << ") * y + ("
-        << pi.n[2] << ") * z + ("
+		<< pi.n[2] << ") * z + ("
 		<< pi.d << ") = 0";
 	return os;
 }
@@ -1324,7 +1324,7 @@ std::ostream &operator <<(std::ostream &os, const GPlane &pi)
 */
 double dist(const GPlane &pi, const GPos3 &p)
 {
-    double D;
+	double D;
 	D = (p[0] * pi.n[0] + p[1] * pi.n[1] + p[2] * pi.n[2] + pi.d) / norm(pi.n);
 	return D;
 }
@@ -1443,7 +1443,7 @@ bool intersect_line_plane(GPos3 &p, const GLine &l, const GPlane &pi)
 
 	double t = -(l.p[0] * pi.n[0] + l.p[1] * pi.n[1] + l.p[2] * pi.n[2] + pi.d) / (l.v * pi.n);
 	p = l.Eval(t);
-    return true;
+	return true;
 }
 
 /*!
@@ -1521,6 +1521,7 @@ GSphere::GSphere(GPos3 _Pos, double _Rad)
 {
 	Pos = _Pos;
 	Rad = _Rad;
+	isMirror = false;
 }
 
 
@@ -1532,6 +1533,7 @@ GSphere::GSphere(const GSphere &cpy)
 	Kd = cpy.Kd;
 	Ks = cpy.Ks;
 	ns = cpy.ns;
+	isMirror = false;
 }
 
 GSphere::~GSphere()
@@ -1546,7 +1548,8 @@ GSphere &GSphere::operator =(const GSphere &rhs)
 	Kd = rhs.Kd;
 	Ks = rhs.Ks;
 	ns = rhs.ns;
-	
+	isMirror = false;
+
 	return *this;
 }
 

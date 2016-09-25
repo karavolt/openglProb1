@@ -56,7 +56,7 @@ class GPlane;
 *	\brief 3차원 벡터를 표현하는 클래스
 *
 *	\author 윤승현(shyun@dongguk.edu)
-*	\date 01 Jan 2001	
+*	\date 01 Jan 2001
 */
 class GVec3
 {
@@ -72,7 +72,7 @@ class GVec3
 	friend bool operator ==(const GVec3 &lhs, const GVec3 &rhs);
 	friend bool operator !=(const GVec3 &lhs, const GVec3 &rhs);
 	friend std::ostream &operator <<(std::ostream &os, const GVec3 &v);
-	friend std::istream &operator >>(std::istream &is, GVec3 &v);
+	friend std::istream &operator >> (std::istream &is, GVec3 &v);
 	friend GVec3 proj(const GVec3 &v, const GVec3 &w);
 	friend GVec3 ortho(const GVec3 &v);
 	friend double dist(const GVec3 &v, const GVec3 &w);
@@ -81,7 +81,7 @@ class GVec3
 	friend double angle(const GVec3 &v, const GVec3 &w, bool radian = false);
 	friend double angle(const GVec3 &v, const GVec3 &w, const GVec3 &up, bool radian = false);
 	friend GPos3 cast_pt3(const GVec3 &v);
-	
+
 public:
 	// 생성자 및 소멸자
 	GVec3(double x = 0.0, double y = 0.0, double z = 0.0);
@@ -107,7 +107,7 @@ public:
 	// 멤버함수
 	GVec3 &Set(const double &x, const double &y, const double &z);
 	GVec3 &Normalize();
-		
+
 	// 정적맴버함수
 	static void SetPrecision(double error);
 	static double GetPrecision();
@@ -126,7 +126,7 @@ public:
 *	\brief 3차원 공간의 위치를 나타내는 클래스
 *
 *	\author 윤승현(shyun@dongguk.edu)
-*	\date 01 Jan 2001	
+*	\date 01 Jan 2001
 */
 class GPos3
 {
@@ -138,7 +138,7 @@ class GPos3
 	friend bool operator ==(const GPos3 &lhs, const GPos3 &rhs);
 	friend bool operator !=(const GPos3 &lhs, const GPos3 &rhs);
 	friend std::ostream &operator <<(std::ostream &os, const GPos3 &p);
-	friend std::istream &operator >>(std::istream &is, GPos3 &p);
+	friend std::istream &operator >> (std::istream &is, GPos3 &p);
 	friend double norm(const GPos3 &p);
 	friend double dist(const GPos3 &p, const GPos3 &q);
 	friend double dist_sq(const GPos3 &p, const GPos3 &q);
@@ -146,7 +146,7 @@ class GPos3
 	friend GPos3 affine_sum(GPos3 *Points, double *Weights, const int Size);
 	friend GVec3 cast_GVec3(const GPos3 &p);
 	friend GPos3 round_off(const GPos3 &p, int place);
-	
+
 public:
 	// 생성자 및 소멸자
 	GPos3(double x = 0.0, double y = 0.0, double z = 0.0);
@@ -163,16 +163,16 @@ public:
 
 	// 멤버함수
 	GPos3 &Set(const double &x, const double &y, const double &z);
-	
+
 	// 정적함수
 	static void SetPrecision(double error);
 	static double GetPrecision();
-   
+
 public:
-	/*! \brief 3차원 벡터의 원소를 저장하는 실수배열 */	
-	double V[3];	
+	/*! \brief 3차원 벡터의 원소를 저장하는 실수배열 */
+	double V[3];
 	/*! \brief 등호 및 부등호연산자의 오차한계 */
-	static double Precision;	
+	static double Precision;
 };
 
 /*!
@@ -180,7 +180,7 @@ public:
 *	\brief 3차원 공간의 직선을 나타내는 클래스
 *
 *	\author 윤승현(shyun@dongguk.edu)
-*	\date 01 Jan 2001	
+*	\date 01 Jan 2001
 */
 class GLine
 {
@@ -195,7 +195,7 @@ class GLine
 	friend bool intersect_line_plane(GPos3 &p, const GLine &l, const GPlane &pi);
 	friend bool intersect_line_triangle(const GPos3 &p1, const GPos3 &p2, const GPos3 &p3, const GLine &l, double &t, GPos3 &q, double &alpha, double &beta, double &gamma, const bool bCull = true);
 	friend bool intersect_planes(GLine &l, const GPlane &pi1, const GPlane &pi2);
-	
+
 public:
 	// 생성자 및 소멸자
 	GLine(const GPos3 &_p = GPos3(0, 0, 0), const GVec3 &_v = GVec3(0, 0, 0));
@@ -205,7 +205,7 @@ public:
 
 	// 대입연산자
 	GLine &operator =(const GLine &rhs);
-	
+
 	// 멤버함수
 	GLine &SetPt(const GPos3 &_p);
 	GLine &SetDir(const GVec3 &_v);
@@ -233,7 +233,7 @@ public:
 *	\brief 평면을 표현하는 클래스
 *
 *	\author 윤승현(shyun@dongguk.edu)
-*	\date 01 Jan 2001	
+*	\date 01 Jan 2001
 */
 class GPlane
 {
@@ -242,7 +242,7 @@ class GPlane
 	friend double dist(const GPlane &pi, const GPos3 &p);
 	friend GPos3 proj(const GPos3 &p, const GPlane &pi);
 	friend bool intersect_line_plane(GPos3 &p, const GLine &l, const GPlane &pi);
-	
+
 public:
 	// 생성자 및 소멸자
 	GPlane(const GVec3 &_n, const GPos3 &_p);
@@ -254,17 +254,17 @@ public:
 
 	// 대입연산자
 	GPlane &operator =(const GPlane &rhs);
-	
+
 	// 멤버함수
 	GVec3 GetNormal() const;
-    bool IsOnPlane(const GPos3 &p) const;
+	bool IsOnPlane(const GPos3 &p) const;
 	bool IsAbovePlane(const GPos3 &p) const;
 	bool IsBelowPlane(const GPos3 &p) const;
 
 	// 정적함수
 	static void SetPrecision(const double err);
 	static double GetPrecision();
-    
+
 public:
 	// 데이터 멤버
 	/*! \brief 평면의 방정식(ax + by + cz + d = 0)에서 법선 벡터 n=(a, b, c) */
@@ -280,7 +280,7 @@ public:
 *	\brief 3차원 구를 표현하는 클래스
 *
 *	\author 윤승현(shyun@dongguk.edu)
-*	\date 18 Sept. 2016	
+*	\date 18 Sept. 2016
 */
 class GSphere
 {
@@ -301,6 +301,7 @@ public:
 	GVec3 Kd;		// 난반사 계수
 	GVec3 Ks;		// 전반사 계수	
 	double ns;		// 전반사 지수
+	bool isMirror;
 };
 
 /*!
@@ -308,13 +309,13 @@ public:
 *	\brief 3차원 공간의 조명을 표현하는 클래스
 *
 *	\author 윤승현(shyun@dongguk.edu)
-*	\date 18 Sept. 2016	
+*	\date 18 Sept. 2016
 */
 class GLight
 {
 public:
 	// 생성자 및 소멸자
-	GLight(GPos3 _Pos = GPos3(), GVec3 _Ia = GVec3() , GVec3 _Id = GVec3() , GVec3 _Is = GVec3());
+	GLight(GPos3 _Pos = GPos3(), GVec3 _Ia = GVec3(), GVec3 _Id = GVec3(), GVec3 _Is = GVec3());
 	GLight(const GLight &cpy);
 	~GLight();
 
