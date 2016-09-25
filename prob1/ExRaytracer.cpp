@@ -175,7 +175,8 @@ GVec3 RayTrace(GLine ray, int depth)
 		return C;
 
 	double k_reflect; // ¹Ý»ç±¤ °è¼ö
-	double k_refract = 0.3; // ±¼Àý±¤ °è¼ö
+	//double k_refract = 0.3; // ±¼Àý±¤ °è¼ö
+
 	int sidx;
 	double t;
 
