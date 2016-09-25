@@ -5,18 +5,22 @@
 #include "gmath.h"
 
 // 전역 변수
-#define MAX_DEPTH 10
+#define MAX_DEPTH 3
+
+// 릴리즈 빌드일때만 쓰기..
+const int MAX_SPHERE = 5;
 #define H 768
 #define W 1024
 unsigned char Image[H * W * 3];
 std::vector<GSphere> SphereList;
 std::vector<GLight> LightList;
-const int MAX_SPHERE = 3;
+
 
 // 콜백 함수 선언
 void Render();
 void Reshape(int w, int h);
 void KeyBoard(int key, int x, int y);
+void timer(int Value);
 
 void CreateImage();
 GVec3 RayTrace(GLine ray, int depth);
@@ -35,6 +39,10 @@ int main(int argc, char **argv)
 	glutDisplayFunc(Render);
 	glutReshapeFunc(Reshape);
 	glutSpecialFunc(KeyBoard);
+
+#ifdef RELEASE
+	glutTimerFunc(300,timer,1);
+#endif
 
 
 	// 조명 설정 광원 2개
@@ -73,7 +81,7 @@ int main(int argc, char **argv)
 		SphereList.push_back(Sphere);
 	}
 
-	// 이미지를 생성
+	// 다시 그린다
 	CreateImage();
 
 	// 이벤트를 처리를 위한 무한 루프로 진입한다.
@@ -111,19 +119,45 @@ void KeyBoard(int key, int x, int y)
 			Sphere.isMirror = rand() % 1;
 			SphereList.push_back(Sphere);
 		}
-
 		// 다시 그린다
 		CreateImage();
 		glutPostRedisplay();
 	}
-
 }
 
 
-void timer(int id)
+void timer(int Value)
 {
+// 릴리즈빌드일때만 동작하는 곳이당
+#ifdef RELEASE
 	static double theta = 0.0;
+
+	SphereList.clear();
+	time_t t;
+	time(&t);
+	srand(t);
+
+	// 다시넣고
+	for (int i = 0; i < MAX_SPHERE; i++)
+	{
+		GSphere Sphere;
+		Sphere.Pos.Set(0.0 + (rand() % 200) - 100, 0.0 + (rand() % 200) - 100, -400.0 - rand() % 100);
+		Sphere.Rad = (rand() % 25) + 10.0;
+		Sphere.Ka.Set(0.0 + (rand() % 10) / 10.0, 0.0 + (rand() % 10) / 10.0, 0.0 + +(rand() % 10) / 10.0);
+		Sphere.Kd.Set(0.0 + (rand() % 10) / 10.0, 0.0 + (rand() % 10) / 10.0, 0.0 + +(rand() % 10) / 10.0);
+		Sphere.Ks.Set(0.0 + (rand() % 10) / 10.0, 0.0 + (rand() % 10) / 10.0, 0.0 + +(rand() % 10) / 10.0);
+		Sphere.ns = 8.0;
+		Sphere.isMirror = rand() % 1;
+		SphereList.push_back(Sphere);
+	}
+	// 다시 그린다
+	CreateImage();
+	glutPostRedisplay();
+
+	glutTimerFunc(100, timer, 1);
+#endif
 }
+
 
 void Render()
 {
@@ -143,10 +177,17 @@ void CreateImage()
 	int x0 = -W / 2;
 	int y0 = H / 2 - 1;
 	double z = -(H / 2) / tan(M_PI * 15 / 180.0);
+	
+	//time_t start, end, tSum = 0;
+	//time(&start);
+
 	for (int i = 0; i < H; ++i)
 	{
+		/*time_t start, end;
+		time(&start);*/
 		for (int j = 0; j < W; ++j)
 		{
+			
 			double x = x0 + j;
 			double y = y0 - i;
 
@@ -164,8 +205,19 @@ void CreateImage()
 			Image[idx] = r;
 			Image[idx + 1] = g;
 			Image[idx + 2] = b;
+			
+			
 		}
+		/*time(&end);
+		time_t result = end - start;
+		tSum += result;
+		std::cout << "Line color calc done : " << result << std::endl;*/
 	}
+
+	//std::cout << "ImageCrete Done : " << tSum << std::endl;
+	/*time(&end);
+	time_t result = end - start;
+	std::cout << "ImageCrete Done : " << result << std::endl;*/
 }
 
 GVec3 RayTrace(GLine ray, int depth)
@@ -198,7 +250,7 @@ GVec3 RayTrace(GLine ray, int depth)
 			k_reflect = 0.3; // 반사광 계수
 
 		C = Phong(P, N, SphereList[sidx]) + k_reflect * RayTrace(ray_reflect, depth);
-	}
+	}	
 	return C;
 }
 
@@ -215,14 +267,15 @@ GVec3 multiply(GVec3 lhs, GVec3 rhs) {
 GVec3 Phong(GPos3 P, GVec3 N, GSphere Obj)
 {
 	GVec3 C;
-
-	for (int i = 0; i < LightList.size(); i++)
+	
+	for (int i = 0; i <(int) LightList.size(); i++)
 	{
 		GVec3 L = (LightList[i].Pos - P).Normalize(); // 곡면위의 한점 -> 광원 
 		GVec3 V = (P - LightList[i].Pos).Normalize(); // 입사광
 		GVec3 R = V - 2.0 * (N * V) * N;			  // 반사광
 
-													  // nl
+		
+		// nl
 		double nl = N * L;
 		if (nl < 0.0)
 			nl = 0.0;
@@ -238,7 +291,6 @@ GVec3 Phong(GPos3 P, GVec3 N, GSphere Obj)
 		GVec3 amb = multiply(LightList[i].Ia, Obj.Ka);
 		GVec3 diff = multiply(LightList[i].Id, Obj.Kd);
 		GVec3 spec = multiply(LightList[i].Is, Obj.Ks);
-		;
 		C = C + amb + diff * nl + spec * vr;
 
 	}
@@ -279,6 +331,5 @@ bool intersect_line_sphere(GLine ray, int &sidx, double &t)
 			}
 		}
 	}
-
 	return false;
 }
