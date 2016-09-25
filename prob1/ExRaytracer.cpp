@@ -40,13 +40,13 @@ int main(int argc, char **argv)
 	GLight Light0;
 	Light0.Pos.Set(-40.0, 40.0, 350.0);
 	Light0.Ia.Set(0.2, 0.2, 0.2);
-	Light0.Id.Set(0.7, 0.7, 0.7);
-	Light0.Is.Set(0.8, 0.8, 0.8);
+	Light0.Id.Set(0.8, 0.8, 0.8);
+	Light0.Is.Set(0.9, 0.9, 0.9);
 	LightList.push_back(Light0);
 
 
 	GLight Light1;
-	Light1.Pos.Set(200.0, -500.0, 350.0);
+	Light1.Pos.Set(-3000.0, 3000.0, 350.0);
 	Light1.Ia.Set(0.2, 0.2, 0.5);
 	Light1.Id.Set(0.7, 0.7, 0.7);
 	Light1.Is.Set(0.8, 0.2, 0.2);
@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 
 	// Àå¸é¿¡ ±¸¸¦ ¹èÄ¡ÇÑ´Ù.
 	GSphere Sphere0;
-	Sphere0.Pos.Set(-80, 0, -450.0);
+	Sphere0.Pos.Set(-80, 0, -400.0);
 	Sphere0.Rad = 50.0;
 	Sphere0.Ka.Set(0.2, 0.2, 0.8);
 	Sphere0.Kd.Set(0.0, 0.0, 0.7);
@@ -63,13 +63,40 @@ int main(int argc, char **argv)
 	SphereList.push_back(Sphere0);
 
 	GSphere Sphere1;
-	Sphere1.Pos.Set(80, 0, -450.0);
+	Sphere1.Pos.Set(80, 0, -400.0);
 	Sphere1.Rad = 50.0;
 	Sphere1.Ka.Set(0.8, 0.2, 0.2);
 	Sphere1.Kd.Set(0.7, 0.0, 0.0);
 	Sphere1.Ks.Set(0.9, 0.9, 0.9);
 	Sphere1.ns = 8.0;
 	SphereList.push_back(Sphere1);
+
+	/*GSphere Sphere2;
+	Sphere2.Pos.Set(0, 80, -400.0);
+	Sphere2.Rad = 25.0;
+	Sphere2.Ka.Set(0.2, 0.8, 0.2);
+	Sphere2.Kd.Set(0.0, 0.7, 0.0);
+	Sphere2.Ks.Set(0.9, 0.9, 0.9);
+	Sphere2.ns = 8.0;
+	SphereList.push_back(Sphere2);
+
+	GSphere Sphere3;
+	Sphere3.Pos.Set(0, -80, -400.0);
+	Sphere3.Rad = 25.0;
+	Sphere3.Ka.Set(0.5, 0.5, 0.5);
+	Sphere3.Kd.Set(0.5, 0.5, 0.5);
+	Sphere3.Ks.Set(0.9, 0.9, 0.9);
+	Sphere3.ns = 8.0;
+	SphereList.push_back(Sphere3);
+
+	GSphere Sphere4;
+	Sphere4.Pos.Set(0, 0, -450.0);
+	Sphere4.Rad = 50.0;
+	Sphere4.Ka.Set(0.5, 0.5, 0.5);
+	Sphere4.Kd.Set(0.2, 0.5, 0.5);
+	Sphere4.Ks.Set(0.9, 0.9, 0.9);
+	Sphere4.ns = 8.0;
+	SphereList.push_back(Sphere4);*/
 
 
 	//GSphere Sphere2;
@@ -170,11 +197,11 @@ GVec3 RayTrace(GLine ray, int depth)
 		GVec3 N = (P - SphereList[sidx].Pos).Normalize(), // normalize vector. ray? sphere?
 			V = ray.v, // ÀÔ»ç±¤
 			R = V - ((2.0 * (N * V)) * N); // ¹Ý»ç±¤
-										   //std::cout << "Æþ2" << std::endl;
-		GLine ray_reflect(P, R);
+		 //std::cout << "Æþ2" << std::endl;
+		GLine ray_reflect(P, R.Normalize());
 
-		C = Phong(P, N, SphereList[sidx]);
-		//k_reflect * RayTrace(ray_reflect, depth);
+		C = Phong(P, N, SphereList[sidx]) +
+		(k_reflect * RayTrace(ray_reflect, depth));
 		//k_refract * RayTrace(ray_refract, depth);	// ±¼Àý±¤¼±
 		//std::cout << "Æþ3" << std::endl;
 	}
@@ -222,10 +249,10 @@ GVec3 Phong(GPos3 P, GVec3 N, GSphere Obj)
 	GVec3 C2 = multiply(LightList[1].Ia, (diff2 + spec2));
 
 	// ÀÏ´Ü ´ÜÀÏ ±¤¿øÀ¸·Î °è»êÀ» ÇØº¸ÀÚ
-	//C = C + amb + diff  + spec;
+	C = C + amb + diff  + spec;
 	//C = C + amb + diff + diff2 + spec + spec2;
-	//C = C + amb + diff + spec;// +C2;
-	C = C + amb + C1 + C2;
+	//C = C + diff + spec;// +C2;
+	//C = C + amb + C1 + C2;
 
 	return C;
 }
